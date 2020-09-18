@@ -1,0 +1,154 @@
+C51 COMPILER V9.56.0.0   HOT                                                               07/14/2020 21:20:08 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE HOT
+OBJECT MODULE PLACED IN .\output\hot.obj
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE source\hot.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\lst\hot.lst) TABS(
+                    -2) OBJECT(.\output\hot.obj)
+
+line level    source
+
+   1          
+   2          /*********************************************************************************************************
+             -************/
+   3          #include "include/ca51f_config.h"   
+   4          #include "include/ca51f3sfr.h"
+   5          #include "include/ca51f3xsfr.h"
+   6          #include "include/gpiodef_f3.h"
+   7          #include "include/system_clock.h"
+   8          
+   9          #include "include/uart.h"
+  10          #include "include/pwm.h"
+  11          #include "include/delay.h"
+  12          #include <intrins.h>
+  13          #include "include/temperature.h"
+  14          /*********************************************************************************************************
+             -************
+  15            本例程设置PWM0输出频率为1KHZ、占空比50%的PWM信号
+  16          **********************************************************************************************************
+             -***********/
+  17          #define PWMDIV_V        (3686400/500)   //当PWM时钟为其他时钟频率时，需相应修改参数
+  18          #define PWMDUT_V        PWMDIV_V/2      //占空比为50%
+  19          
+  20          char hot_status=0;
+  21          
+  22          void init_pwm()
+  23          {
+  24   1        
+  25   1        CKCON |= IHCKE;         //打开IRCH时钟
+  26   1        
+  27   1        P15F = P15_PWM0_SETTING;                //设置P15为PWM引脚功能
+  28   1      
+  29   1        INDEX = PWM_CH0;                        //设置INDEX值对应PWM0
+  30   1        PWMCON = TIE(0) | ZIE(0) | PIE(0) | NIE(0) | MS(0) | CKS_IH ;     //设置PWM时钟源为IRCH  
+  31   1      //  PWMCON = TIE(0) | ZIE(0) | PIE(0) | NIE(0) | MS(0) | CKS_IL ;     //设置PWM时钟源为IRCL
+  32   1      //  PWMCON = TIE(0) | ZIE(0) | PIE(0) | NIE(0) | MS(0) | CKS_XL ;     //设置PWM时钟源为XOSCL  
+  33   1      //  PWMCON = TIE(0) | ZIE(0) | PIE(0) | NIE(0) | MS(0) | CKS_TF ;     //设置PWM时钟源为TFRC 
+  34   1      //  PWMCON = TIE(0) | ZIE(0) | PIE(0) | NIE(0) | MS(0) | CKS_PLL ;    //设置PWM时钟源为PLL  
+  35   1        PWMCFG = TOG(0) | 100;                                                
+  36   1        
+  37   1        //设置PWMDIV、PWMDUT
+  38   1        PWMDIVH = (unsigned char)(PWMDIV_V>>8);     
+  39   1        PWMDIVL = (unsigned char)(PWMDIV_V);      
+  40   1      //  PWMDUTH = (unsigned char)(PWMDUT_V>>8);   
+  41   1      //  PWMDUTL = (unsigned char)(PWMDUT_V);  
+  42   1      
+  43   1      //  PWMUPD = (1<<PWM_CH0);                  //PWMDIV、PWMDUT更新使能
+  44   1      //  while(PWMUPD);                          //等待更新完成
+  45   1      //  PWMEN = (1<<PWM_CH0);                   //PWM0使能
+  46   1      //  
+  47   1      
+  48   1      }
+  49          void set_hot_power(unsigned char n)
+  50          {   
+  51   1        static unsigned char p=1;
+C51 COMPILER V9.56.0.0   HOT                                                               07/14/2020 21:20:08 PAGE 2   
+
+  52   1        if(p!=n)
+  53   1        {
+  54   2          PWMDUTH = (unsigned char)(PWMDIV_V*n/100>>8);   
+  55   2          PWMDUTL = (unsigned char)(PWMDIV_V*n/100);  
+  56   2      
+  57   2          PWMUPD = (1<<PWM_CH0);                  //PWMDIV、PWMDUT更新使能
+  58   2          while(PWMUPD);                          //等待更新完成
+  59   2          PWMEN = (1<<PWM_CH0);                   //PWM0使能
+  60   2          p=n;
+  61   2        }
+  62   1        
+  63   1      } 
+  64          
+  65          
+  66          void check_hot()
+  67          {
+  68   1        unsigned int current_temp=get_temp();
+  69   1        char jia_re_wen_du=get_jia_re_wen_du();
+*** WARNING C206 IN LINE 69 OF source\hot.c: 'get_jia_re_wen_du': missing function-prototype
+  70   1        char jia_re_status= get_jia_re_status();
+*** WARNING C206 IN LINE 70 OF source\hot.c: 'get_jia_re_status': missing function-prototype
+  71   1        char bao_wen_status= get_bao_wen_status();
+*** WARNING C206 IN LINE 71 OF source\hot.c: 'get_bao_wen_status': missing function-prototype
+  72   1        
+  73   1        if(jia_re_status || bao_wen_status)
+  74   1        {
+  75   2          if(jia_re_wen_du>current_temp)
+  76   2          {
+  77   3            if(jia_re_wen_du-current_temp>10)
+  78   3            {
+  79   4              set_hot_power(100);
+  80   4            }
+  81   3            else if(jia_re_wen_du-current_temp>5)
+  82   3            {
+  83   4              set_hot_power(30);
+  84   4            }
+  85   3            else 
+  86   3            {
+  87   4              if(jia_re_wen_du>90 || bao_wen_status>90 )
+  88   4              {
+  89   5                set_hot_power(30);
+  90   5              }
+  91   4              else
+  92   4              {
+  93   5                set_hot_power(10);
+  94   5              }
+  95   4              
+  96   4            }
+  97   3            hot_status=1;
+  98   3          }
+  99   2          else
+ 100   2          {
+ 101   3            guan_bi_jia_re();
+*** WARNING C206 IN LINE 101 OF source\hot.c: 'guan_bi_jia_re': missing function-prototype
+ 102   3            hot_status=0;
+ 103   3            set_hot_power(0);
+ 104   3          }
+ 105   2          
+ 106   2        }
+ 107   1        else
+ 108   1        {
+ 109   2          set_hot_power(0);
+C51 COMPILER V9.56.0.0   HOT                                                               07/14/2020 21:20:08 PAGE 3   
+
+ 110   2        }
+ 111   1        
+ 112   1      
+ 113   1      }
+ 114          
+ 115          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    242    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

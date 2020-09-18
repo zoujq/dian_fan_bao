@@ -1,0 +1,368 @@
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE TM1722
+OBJECT MODULE PLACED IN .\output\tm1722.obj
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE source\tm1722.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\lst\tm1722.lst)
+                    - TABS(2) OBJECT(.\output\tm1722.obj)
+
+line level    source
+
+   1           /*****************************************************************************
+   2           *版权信息：深圳天微电子有限公司
+   3           *文 件 名：TM1722-V1.0
+   4           *当前版本：V1.0
+   5           *MCU 型号：STC12C5608AD
+   6           *开发环境：Keil uVision4
+   7           *晶震频率：11.0592MHZ       
+   8           *完成日期：2013-08-20
+   9           *程序功能：1.LCD 驱动：6位段式LCD显示0~5。
+  10                      2.PWM功能 ：上电后PWM0 PWM2亮，PWM3灭，具体LED接法请参考规格书。
+  11           *免责声明：1.此程序为TM1722驱动LCD演示程序，仅作参考之用。
+  12                      2.如有直接使用本例程程序造成经济损失的，本公司不承担任何责任。             
+  13          ********************************************************************************/
+  14          #include "include/ca51f_config.h"   
+  15          #include "include/ca51f3sfr.h"
+  16          #include "include/ca51f3xsfr.h"
+  17          #include "include/gpiodef_f3.h"
+  18          #include "include/system_clock.h"
+  19          
+  20          #include "include/uart.h"
+  21          #include "include/delay.h"
+  22          #include <intrins.h>
+  23          
+  24          #include "include/tm1722.h"
+  25          
+  26          #include "intrins.h"
+  27          
+  28          
+  29          #define uchar unsigned char             //数据类型宏定义
+  30          #define uint unsigned int             //数据类型宏定义
+  31          
+  32          #define nop  _nop_();_nop_();_nop_();                       //宏定义
+  33          
+  34          /********************定义控制端口**********************/
+  35          #define DIO P10
+  36          #define CLK P01
+  37          #define STB P30
+  38          #define LCD_BACKLIGHT P34
+  39          
+  40          /********************定义数据*************************/
+  41          
+  42          //uchar code Tab0[16]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}; /
+             -/清屏
+  43          //uchar code number0_9[16]={0xeb,0x60,0xc7,0xE5,0x6C,0xAD,0xaf,0xE0,0xef,0xed,0xee,0x2f,0x8b,0x67,0x8f,0x8
+             -e};  //0~F字型码
+  44          
+  45          uchar Buff[20]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+             -0x00,0x00};
+  46          /***************延时函数nms**************/
+  47          void delay_nms(unsigned int n)
+  48          {
+  49   1        Delay_ms(n);
+  50   1      }
+  51          
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 2   
+
+  52          void lcd_io_init()
+  53          {
+  54   1        P10F = OUTPUT|PU_EN;    //P01设置为输出模式并使能上拉电阻
+  55   1        P10C &= ~0x20;          //上拉电阻选择为弱上拉
+  56   1        
+  57   1        P01F = OUTPUT|PU_EN;    //P01设置为输出模式并使能上拉电阻
+  58   1        P01C &= ~0x20;          //上拉电阻选择为弱上拉
+  59   1        
+  60   1        P30F = OUTPUT|PU_EN;    //P02设置为输出模式并使能上拉电阻
+  61   1        P30C &= ~0x20;          //上拉电阻选择为弱上拉
+  62   1        
+  63   1        P34F = OUTPUT|OP_EN;    //开漏输出
+  64   1        LCD_BACKLIGHT=0;          //上拉电阻选择为弱上拉
+  65   1        
+  66   1        disp_init();
+  67   1      }
+  68          
+  69          /***************发送8bit数据，从低位开始**************/
+  70          void write_8bit(uchar dat)
+  71          {
+  72   1      uchar i;
+  73   1      for(i=0;i<8;i++)   //先写低位
+  74   1      {
+  75   2        CLK=0;
+  76   2        if(dat&0x01) 
+  77   2           DIO=1;
+  78   2        else 
+  79   2           DIO=0;
+  80   2         nop;
+  81   2        CLK=1;
+  82   2        dat>>=1;
+  83   2      }
+  84   1      CLK=0;
+  85   1      DIO=0;
+  86   1      }
+  87          
+  88          
+  89          /******************发送控制命令***********************/
+  90          void write_command(uchar Cmd)
+  91          {
+  92   1       STB=1;
+  93   1       nop;
+  94   1       STB=0;
+  95   1       write_8bit(Cmd);
+  96   1      }
+  97          
+  98          /****************显示函数，LCD显示*****************/
+  99          
+ 100          void disp_init()
+ 101          {
+ 102   1       write_command(0x00);   //工作模式设置：开启SEG
+ 103   1       write_command(0x44);   //数据设置：写数据到显示寄存器，采用固定地址 
+ 104   1       write_command(0x97);   //显示控制设置：显示开，1/3偏压，LCD电压通过改变低三位调节
+ 105   1      
+ 106   1       write_command(0xca);   //向02H写数据，显示0
+ 107   1       write_8bit(0x00);
+ 108   1       write_command(0xcb);   //向03H写数据，显示1
+ 109   1       write_8bit(0x00);
+ 110   1       write_command(0xce);   //向06H写数据，显示2
+ 111   1       write_8bit(0x00);
+ 112   1        
+ 113   1       STB=1;
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 3   
+
+ 114   1      }
+ 115          
+ 116          void refresh_screen()
+ 117          {
+ 118   1        write_command(0xca);   //
+ 119   1        write_8bit(Buff[0]|(Buff[1]<<1)|(Buff[2]<<2)|(Buff[3]<<3));
+ 120   1        write_command(0xcb);   //
+ 121   1        write_8bit(Buff[4]|(Buff[5]<<1)|(Buff[6]<<2)|(Buff[7]<<3)|(Buff[8]<<4)|(Buff[9]<<5)|(Buff[10]<<6)|(Buff[1
+             -1]<<7));
+ 122   1        write_command(0xce);   //
+ 123   1        write_8bit(Buff[12]|(Buff[13]<<1)|(Buff[14]<<2)|(Buff[15]<<3)|(Buff[16]<<4)|(Buff[17]<<5)|(Buff[18]<<6)|(
+             -Buff[19]<<7));
+ 124   1      }
+ 125          
+ 126          //////////////显示数字////////////////////////
+ 127          ///position=1,正数第一位。position=2,正数第二位。position=3,正数第三位。=4 关温度显示。=5 不显示温度
+ 128          void show_number(uchar position ,uchar n)
+ 129          {
+ 130   1        if(position==1)
+ 131   1        {
+ 132   2          if(n==1)
+ 133   2          {
+ 134   3            Buff[11]=1;
+ 135   3          }
+ 136   2          else
+ 137   2          {
+ 138   3            Buff[11]=0;
+ 139   3          }   
+ 140   2          
+ 141   2        }
+ 142   1        else if(position==2)
+ 143   1        {
+ 144   2          switch(n)
+ 145   2          {
+ 146   3            case 0:
+ 147   3              Buff[9]=0;Buff[12]=1;Buff[13]=1;Buff[14]=1;Buff[15]=1;Buff[10]=1;Buff[8]=1;
+ 148   3              break;
+ 149   3            case 1:
+ 150   3              Buff[9]=0;Buff[12]=0;Buff[13]=0;Buff[14]=0;Buff[15]=0;Buff[10]=1;Buff[8]=1;
+ 151   3              break;
+ 152   3            case 2:
+ 153   3              Buff[9]=1;Buff[12]=1;Buff[13]=0;Buff[14]=1;Buff[15]=1;Buff[10]=0;Buff[8]=1;
+ 154   3              break;
+ 155   3            case 3:
+ 156   3              Buff[9]=1;Buff[12]=1;Buff[13]=0;Buff[14]=0;Buff[15]=1;Buff[10]=1;Buff[8]=1;
+ 157   3              break;
+ 158   3            case 4:
+ 159   3              Buff[9]=1;Buff[12]=0;Buff[13]=1;Buff[14]=0;Buff[15]=0;Buff[10]=1;Buff[8]=1;
+ 160   3              break;
+ 161   3            case 5:
+ 162   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=0;Buff[15]=1;Buff[10]=1;Buff[8]=0;
+ 163   3              break;
+ 164   3            case 6:
+ 165   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=1;Buff[15]=1;Buff[10]=1;Buff[8]=0;
+ 166   3              break;
+ 167   3            case 7:
+ 168   3              Buff[9]=0;Buff[12]=1;Buff[13]=0;Buff[14]=0;Buff[15]=0;Buff[10]=1;Buff[8]=1;
+ 169   3              break;
+ 170   3            case 8:
+ 171   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=1;Buff[15]=1;Buff[10]=1;Buff[8]=1;
+ 172   3              break;
+ 173   3            case 9:
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 4   
+
+ 174   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=0;Buff[15]=1;Buff[10]=1;Buff[8]=1;
+ 175   3              break;
+ 176   3            default:
+ 177   3              break;
+ 178   3          }
+ 179   2        }
+ 180   1        else if(position==3)
+ 181   1        {
+ 182   2          switch(n)
+ 183   2          {
+ 184   3            case 0:
+ 185   3              Buff[1]=0;Buff[4]=1;Buff[5]=1;Buff[6]=1;Buff[7]=1;Buff[2]=1;Buff[0]=1;
+ 186   3              break;
+ 187   3            case 1:
+ 188   3              Buff[1]=0;Buff[4]=0;Buff[5]=0;Buff[6]=0;Buff[7]=0;Buff[2]=1;Buff[0]=1;
+ 189   3              break;
+ 190   3            case 2:
+ 191   3              Buff[1]=1;Buff[4]=1;Buff[5]=0;Buff[6]=1;Buff[7]=1;Buff[2]=0;Buff[0]=1;
+ 192   3              break;
+ 193   3            case 3:
+ 194   3              Buff[1]=1;Buff[4]=1;Buff[5]=0;Buff[6]=0;Buff[7]=1;Buff[2]=1;Buff[0]=1;
+ 195   3              break;
+ 196   3            case 4:
+ 197   3              Buff[1]=1;Buff[4]=0;Buff[5]=1;Buff[6]=0;Buff[7]=0;Buff[2]=1;Buff[0]=1;
+ 198   3              break;
+ 199   3            case 5:
+ 200   3              Buff[1]=1;Buff[4]=1;Buff[5]=1;Buff[6]=0;Buff[7]=1;Buff[2]=1;Buff[0]=0;
+ 201   3              break;
+ 202   3            case 6:
+ 203   3              Buff[1]=1;Buff[4]=1;Buff[5]=1;Buff[6]=1;Buff[7]=1;Buff[2]=1;Buff[0]=0;
+ 204   3              break;
+ 205   3            case 7:
+ 206   3              Buff[1]=0;Buff[4]=1;Buff[5]=0;Buff[6]=0;Buff[7]=0;Buff[2]=1;Buff[0]=1;
+ 207   3              break;
+ 208   3            case 8:
+ 209   3              Buff[1]=1;Buff[4]=1;Buff[5]=1;Buff[6]=1;Buff[7]=1;Buff[2]=1;Buff[0]=1;
+ 210   3              break;
+ 211   3            case 9:
+ 212   3              Buff[1]=1;Buff[4]=1;Buff[5]=1;Buff[6]=0;Buff[7]=1;Buff[2]=1;Buff[0]=1;
+ 213   3              break;
+ 214   3            default:
+ 215   3              break;
+ 216   3          }
+ 217   2        }
+ 218   1        else if(position==4)
+ 219   1        {
+ 220   2          Buff[11]=0;
+ 221   2          Buff[9]=0;Buff[12]=0;Buff[13]=0;Buff[14]=0;Buff[15]=0;Buff[10]=0;Buff[8]=0;
+ 222   2          Buff[1]=0;Buff[4]=0;Buff[5]=0;Buff[6]=0;Buff[7]=0;Buff[2]=0;Buff[0]=0;
+ 223   2        }
+ 224   1        else if(position==5)
+ 225   1        {
+ 226   2          Buff[11]=0;
+ 227   2          Buff[9]=1;Buff[12]=0;Buff[13]=0;Buff[14]=0;Buff[15]=0;Buff[10]=0;Buff[8]=0;
+ 228   2          Buff[1]=1;Buff[4]=0;Buff[5]=0;Buff[6]=0;Buff[7]=0;Buff[2]=0;Buff[0]=0;
+ 229   2        }
+ 230   1        else
+ 231   1        {
+ 232   2          
+ 233   2        }
+ 234   1        
+ 235   1      
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 5   
+
+ 236   1      }
+ 237          ///////////////////显示图标///////////////
+ 238          //icon=1-温度，2-奶瓶，3-煮面，4-温度单位，5-火苗。on_off=0,1
+ 239          void set_icon(uchar icon ,uchar on_off)
+ 240          {
+ 241   1        switch(icon)
+ 242   1        {
+ 243   2          case 1:
+ 244   2            Buff[18]=on_off;
+ 245   2          
+ 246   2            break;
+ 247   2          case 2:
+ 248   2            Buff[17]=on_off;
+ 249   2            break;
+ 250   2          case 3:
+ 251   2            Buff[16]=on_off;
+ 252   2            break;
+ 253   2          case 4:
+ 254   2            Buff[3]=on_off;
+ 255   2            break;
+ 256   2          case 5:
+ 257   2            Buff[19]=on_off;
+ 258   2            break;
+ 259   2          default:
+ 260   2            break;
+ 261   2        
+ 262   2        }
+ 263   1          
+ 264   1        
+ 265   1      }
+ 266          void show_temp(char temp)
+ 267          {
+ 268   1        if(temp>100)
+ 269   1        {
+ 270   2          temp=100;
+ 271   2        }
+ 272   1        if(temp==100)
+ 273   1        {
+ 274   2          show_number(1,1);
+ 275   2          show_number(2,0);
+ 276   2          show_number(3,0);
+ 277   2        }
+ 278   1        else if(temp<=10)
+ 279   1        {
+ 280   2          show_number(1,0);
+ 281   2          show_number(5,0);
+ 282   2          show_number(5,0);
+ 283   2        } 
+ 284   1        else 
+ 285   1        {
+ 286   2          show_number(1,0);
+ 287   2          show_number(2,temp/10);
+ 288   2          show_number(3,temp%10);
+ 289   2        }
+ 290   1          
+ 291   1        set_icon(4,1);
+ 292   1        
+ 293   1      }
+ 294          void un_diplay_temp()
+ 295          {
+ 296   1        show_number(4,0);
+ 297   1        set_icon(4,0);
+C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 6   
+
+ 298   1      }
+ 299          void close_display()
+ 300          {
+ 301   1        LCD_BACKLIGHT=1;
+ 302   1        disp_init();
+ 303   1      }
+ 304          void open_display()
+ 305          {
+ 306   1        LCD_BACKLIGHT=0;
+ 307   1        show_temp(0);
+ 308   1      }
+ 309          void display_icon_wendu()
+ 310          {
+ 311   1        set_icon(1,1);
+ 312   1      }
+ 313          void un_display_icon_wendu()
+ 314          {
+ 315   1        set_icon(1,0);
+ 316   1      }
+ 317          void display_icon_huomiao()
+ 318          {
+ 319   1        set_icon(5,1);
+ 320   1      }
+ 321          void un_display_icon_huomiao()
+ 322          {
+ 323   1        set_icon(5,0);
+ 324   1      }
+ 325          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1000    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     20    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

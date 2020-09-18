@@ -1,0 +1,391 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"sub",
+				"substr"
+			],
+			[
+				"P",
+				"P_id"
+			],
+			[
+				"var",
+				"var_dump"
+			],
+			[
+				"e",
+				"echo\techo \"…\""
+			],
+			[
+				"text",
+				"text-align\tproperty"
+			],
+			[
+				"h",
+				"height\tproperty"
+			],
+			[
+				"w",
+				"width\tproperty"
+			],
+			[
+				"p",
+				"padding\tproperty"
+			],
+			[
+				"bac",
+				"background-color\tproperty"
+			],
+			[
+				"hr",
+				"href\tAttr"
+			],
+			[
+				"di",
+				"display\tproperty"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "source/hot.c",
+			"settings":
+			{
+				"buffer_size": 2811,
+				"encoding": "Western (Windows 1252)",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "//10    9    8    7    6     5    4    3    2    1\n  780,  790,  800,  810,  820,   830,  840,  850,  860,  870,  //90\n  890,  910,  930,  950,  970,   990, 1010, 1030, 1050, 1070,  //80\n 1090, 1100, 1150, 1200, 1260,  1320, 1380, 1440, 1500, 1560,  //70\n 1620, 1680, 1740, 1800, 1860,  1920, 1980, 2040, 2100, 2150,  //60\n 2200, 2300, 2400, 2500, 2600,  2700, 2800, 2900, 3000, 3180,  //50\n 3360, 3560, 3730, 3910, 4100,  4250, 4400, 4550, 4700, 4850,  //40\n 5000, 5150, 5300, 5450, 5600,  5750, 5900, 6050, 6200, 6350,  //30\n 6500, 6650, 6800, 6950, 7100,  7250, 7550, 7850, 8150, 8450,  //20\n 8750, 9100, 9350, 9700,10100,  10500,10900,11300,11700,1200  //10",
+			"file": "/C/Users/ideaz/Desktop/New Text Document.txt",
+			"file_size": 0,
+			"file_write_time": 132391860589135203,
+			"settings":
+			{
+				"buffer_size": 661,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "source/main.c",
+			"settings":
+			{
+				"buffer_size": 1773,
+				"encoding": "Western (Windows 1252)",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"css",
+				"Set Syntax: CSS"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 157.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/D/1005_项目/1007-电热水壶/软件/HT_SHUIHU_1",
+		"/D/1005_项目/1007-电热水壶/软件/HT_SHUIHU_1/source"
+	],
+	"file_history":
+	[
+		"/D/1005_项目/1007-电热水壶/软件/HT_SHUIHU_1/source/main.c",
+		"/D/1005_项目/1007-电热水壶/软件/SHUIHU/source/main.c",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/index.php",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/message.php",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials.php",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/contact.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/about.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/products.php",
+		"/D/1005_项目/1007-电热水壶/电路设计/元件datasheet/tm1722.c",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/services.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/README.md",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/sql.php",
+		"/F/万事达/1001-项目/1101-温控-S3 Pro/新SVN/MCU软件/S3_switch/S3_switch/S3_switch.C",
+		"/F/Keil/TOOLS.INI",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/puoducts_all.php",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/js_css/custom.css",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/index.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p3.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/products.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/js_css/custom.js",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/js_css/scripts.min.js",
+		"/D/1001_公司/5006_服务器/历史/网站/js_css/custom.css",
+		"/D/1001_公司/5006_服务器/历史/网站/detials0.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p2.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p4.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p5.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p1.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials_p6.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/js_css/style.min.css",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/js_css/styles-merged.css",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/detials0.html",
+		"/D/1001_公司/5006_服务器/网站/products.html",
+		"/D/1001_公司/5006_服务器/SVN/web/trunk/huotian_message.php",
+		"/D/1001_公司/5006_服务器/网站/js_css/styles-merged.css",
+		"/D/1001_公司/5006_服务器/网站/index.html",
+		"/D/1001_公司/5006_服务器/网站/contact.html",
+		"/D/1001_公司/5006_服务器/网站/detials0.html",
+		"/D/1001_公司/5006_服务器/网站/js_css/style.min.css",
+		"/D/1001_公司/5006_服务器/网站/about.html",
+		"/D/1001_公司/5006_服务器/网站/services.html",
+		"/D/1001_公司/5006_服务器/网站/js_css/icomoon.woff",
+		"/D/1001_公司/5006_服务器/网站/js_css/custom.js",
+		"/D/1001_公司/5006_服务器/网站/js_css/custom.css",
+		"/D/1001_公司/5006_服务器/网站/js_css/astyle.css",
+		"/D/1001_公司/5006_服务器/网站/Home.html",
+		"/D/1003_店铺/淘宝/店铺代码.html",
+		"/D/1002_灯饰/7001_抓图工具/图片工具01.html",
+		"/C/Users/ideaz/Desktop/New Text Document.txt"
+	],
+	"find":
+	{
+		"height": 40.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			","
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "source/hot.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2811,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/C/Users/ideaz/Desktop/New Text Document.txt",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 661,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								661,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "source/main.c",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1773,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								821,
+								821
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 28.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "sublime.sublime-project",
+	"replace":
+	{
+		"height": 52.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

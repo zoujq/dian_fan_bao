@@ -1,0 +1,302 @@
+C51 COMPILER V9.56.0.0   TEMPERATURE                                                       07/14/2020 21:27:37 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE TEMPERATURE
+OBJECT MODULE PLACED IN .\output\temperature.obj
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE source\temperature.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\lst\temper
+                    -ature.lst) TABS(2) OBJECT(.\output\temperature.obj)
+
+line level    source
+
+   1          /*********************************************************************************************************
+             -************/
+   2          #include "include/ca51f_config.h"   
+   3          #include "include/ca51f3sfr.h"
+   4          #include "include/ca51f3xsfr.h"
+   5          #include "include/gpiodef_f3.h"
+   6          #include "include/system_clock.h"
+   7          
+   8          #include "include/uart.h"
+   9          #include "include/adc.h"
+  10          #include "include/delay.h"
+  11          #include <intrins.h>
+  12          
+  13          #include "include/tm1722.h"
+  14          #include "include/keys.h"
+  15          #include "include/hot.h"
+  16          #include "include/temperature.h"
+  17          /*********************************************************************************************************
+             -************/
+  18          unsigned int current_temp=0;
+  19          
+  20          
+  21          unsigned char read_inner_trim(void)       
+  22          {
+  23   1        unsigned char value;
+  24   1        FSCMD = 0x80; 
+  25   1        PTSH  = 0x00;       
+  26   1        PTSL  = 0x24;      
+  27   1        FSCMD = 0x81;           
+  28   1        value = FSDAT;
+  29   1        FSCMD = 0;
+  30   1        return (value&0x3F);
+  31   1      }
+  32          
+  33          
+  34          void init_temp_adc()
+  35          {
+  36   1      
+  37   1      /**********设置ADC引脚功能*************************************************************/
+  38   1      //  P10F = P10_ADC0_SETTING;  //设置P10为ADC引脚功能
+  39   1      //  P11F = P11_ADC1_SETTING;  //设置P11为ADC引脚功能
+  40   1      //  P12F = P12_ADC2_SETTING;  //设置P12为ADC引脚功能
+  41   1      //  P13F = P13_ADC3_SETTING;  //设置P13为ADC引脚功能
+  42   1      //  P14F = P14_ADC4_SETTING;  //设置P14为ADC引脚功能
+  43   1      //  P15F = P15_ADC5_SETTING;  //设置P15为ADC引脚功能
+  44   1        P16F = P16_ADC6_SETTING;  //设置P16为ADC引脚功能
+  45   1      //  P17F = P17_ADC7_SETTING;  //设置P17为ADC引脚功能
+  46   1        
+  47   1      //    P10F = P10_ADC_VREF_SETTING;  //如果ADC参考电压选择为外部参考电压，需要设置P10为外部参考电压引脚，并且
+             -ADC0通道不能使用。
+  48   1      /***************************************************************************************/
+  49   1        
+  50   1      
+  51   1      /**********初始化ADC寄存器（设置ADC时钟、选择ADC参考电压、设置ADC运放、加载内部1.5V校准值）***********/
+C51 COMPILER V9.56.0.0   TEMPERATURE                                                       07/14/2020 21:27:37 PAGE 2   
+
+  52   1      //  ADCON = AST(0) | ADIE(0) | HTME(7) | VSEL(ADC_REF_INNER);   //设置ADC参考电压为内部1.5V
+  53   1        ADCON = AST(0) | ADIE(0) | HTME(7) | VSEL(ADC_REF_VDD);       //设置ADC参考电压为VDD
+  54   1      //  ADCON = AST(0) | ADIE(0) | HTME(7) | VSEL(ADC_REF_Outer);   //设置ADC参考电压为外部参考电压
+  55   1        
+  56   1        ADCFGH = AOPS(NO_AMP) | VTRIM(read_inner_trim());             //加载内部1.5V校准值
+  57   1      /**************************************************************************************************/
+  58   1      
+  59   1      
+  60   1      /**********设置ADC通道和时钟分频*********************************************************************/
+  61   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH0);  //选择ADC0通道
+  62   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH1);  //选择ADC1通道
+  63   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH2);  //选择ADC2通道
+  64   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH3);  //选择ADC3通道
+  65   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH4);  //选择ADC4通道
+  66   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH5);  //选择ADC5通道
+  67   1        ADCFGL = ACKD(7) | ADCHS(ADC_CH6);  //选择ADC6通道
+  68   1      //  ADCFGL = ACKD(7) | ADCHS(ADC_CH7);  //选择ADC7通道
+  69   1      /**************************************************************************************************/
+  70   1      
+  71   1      }
+  72          
+  73          unsigned int get_temp_adc()
+  74          {
+  75   1          unsigned int AD_Value;
+  76   1          ADCON |= AST(1);                                //启动ADC转换
+  77   1          while(!(ADCON & ADIF));                         //等待ADC转换完成
+  78   1          ADCON |= ADIF;                                  //清除ADC中断标志
+  79   1          AD_Value = ADCDH*256 + ADCDL;                   //读取AD值
+  80   1          AD_Value >>= 4;   
+  81   1          uart_printf ("ADC Value = 0x%x\n\r",AD_Value);    //打印AD值  
+  82   1          return AD_Value;
+  83   1      }
+  84          unsigned int code Temp_Table[90]={  
+  85            //10    9     8     7     6      5     4     3     2     1
+  86            740,  742,  743,  745,  750,   755,  760,  790,  820,  850,  //90-10
+  87            880,  885,  890,  895,  900,   918,  936,  954,  972,  990,  //80
+  88           1200, 1250,  1300, 1350, 1400, 1450, 1500, 1550, 1600, 1650,  //70
+  89           1700, 1750,  1800, 1880, 1960, 2040, 2120, 2200, 2300, 2400,  //60
+  90           2500, 2600,  2700, 2800, 2900, 3000, 3180, 3270, 3360, 3560,  //50
+  91           3730, 3910,  4100, 4250, 4400, 4550, 4700, 4850, 5000, 5600,  //40
+  92           6200, 6300,  6400, 6500, 6850,  7120, 7580, 7960, 8340, 8710,  //30
+  93           9100, 10400, 11700, 13000,14400,15800, 17200, 18600, 20000, 21400,  //20
+  94           23000, 25000, 28000, 31000,35000,38000,41000,46000,51000,56000  //10
+  95          
+  96          
+  97          };
+  98          unsigned int zhong_zhi_lv_bo( unsigned int adcx)
+  99          {
+ 100   1        int i,j;
+ 101   1        static unsigned int adc[5]={0};
+ 102   1        unsigned int adc_cpy[5]={0};
+ 103   1        unsigned int temp=0;
+ 104   1          
+ 105   1        adc[4]=adc[3];
+ 106   1        adc[3]=adc[2];
+ 107   1        adc[2]=adc[1];
+ 108   1        adc[1]=adc[0];
+ 109   1        adc[0]=adcx;
+ 110   1        
+ 111   1        adc_cpy[0]=adc[0];
+ 112   1        adc_cpy[1]=adc[1];
+ 113   1        adc_cpy[2]=adc[2];
+C51 COMPILER V9.56.0.0   TEMPERATURE                                                       07/14/2020 21:27:37 PAGE 3   
+
+ 114   1        adc_cpy[3]=adc[3];
+ 115   1        adc_cpy[4]=adc[4];
+ 116   1        
+ 117   1        for(j=0;j<4;j++)
+ 118   1        {
+ 119   2          for(i=0;i<4-j;i++)
+ 120   2          {
+ 121   3            if(adc_cpy[i]<adc_cpy[i+1])
+ 122   3            {
+ 123   4              temp=adc_cpy[i];
+ 124   4              adc_cpy[i]=adc_cpy[i+1];
+ 125   4              adc_cpy[i+1]=temp;
+ 126   4              
+ 127   4            }
+ 128   3          }
+ 129   2          
+ 130   2        }
+ 131   1        
+ 132   1        return adc_cpy[2];
+ 133   1        
+ 134   1      }
+ 135          
+ 136          unsigned int get_resistance(unsigned int adc6)
+ 137          {
+ 138   1        unsigned int res=0;
+ 139   1        
+ 140   1        if(adc6>10)
+ 141   1        {
+ 142   2          res=409600/adc6 -100;
+ 143   2        }
+ 144   1        
+ 145   1        //uart_printf ("res Value =%d\n\r",res);  
+ 146   1        return res;
+ 147   1        
+ 148   1      }
+ 149          
+ 150          void check_temp()
+ 151          {
+ 152   1        unsigned int n=0;
+ 153   1        unsigned int res=0;
+ 154   1          
+ 155   1        res=get_resistance(zhong_zhi_lv_bo(get_temp_adc()));
+ 156   1        
+ 157   1        if(res==0 || res<300)
+ 158   1        {
+ 159   2          current_temp=0;
+ 160   2          
+ 161   2        }
+ 162   1        else
+ 163   1        {
+ 164   2            for(n=0;n<90;n++)
+ 165   2            {
+ 166   3              if(Temp_Table[n]>res)
+ 167   3              {
+ 168   4                break;
+ 169   4              }
+ 170   3              
+ 171   3            }
+ 172   2              
+ 173   2            current_temp=100-n;
+ 174   2          
+ 175   2        }
+C51 COMPILER V9.56.0.0   TEMPERATURE                                                       07/14/2020 21:27:37 PAGE 4   
+
+ 176   1      
+ 177   1        
+ 178   1      }
+ 179          unsigned int get_temp()
+ 180          {
+ 181   1        
+ 182   1        return current_temp;
+ 183   1      //  return 65;
+ 184   1        
+ 185   1      }
+ 186          void display_temp()
+ 187          {
+ 188   1        static unsigned int last_temp=0;
+ 189   1        unsigned int real_temp=0;
+ 190   1        unsigned int jia_re_wen_du=0;
+ 191   1        if(get_xuan_niu_ing())
+ 192   1        {
+ 193   2          return ;
+ 194   2        }
+ 195   1        
+ 196   1        real_temp=get_temp();
+ 197   1        
+ 198   1        if(real_temp>last_temp)
+ 199   1        {
+ 200   2          if(real_temp-last_temp>=2)
+ 201   2          {
+ 202   3            last_temp=real_temp-1;
+ 203   3          }
+ 204   2        }
+ 205   1        else if(real_temp<last_temp)
+ 206   1        {
+ 207   2          if(last_temp-real_temp>=2)
+ 208   2          {
+ 209   3            last_temp=real_temp+1;
+ 210   3          }
+ 211   2        } 
+ 212   1        
+ 213   1        if(real_temp==100)
+ 214   1        {
+ 215   2          last_temp=100;
+ 216   2        }
+ 217   1        
+ 218   1        jia_re_wen_du=get_jia_re_wen_du();
+ 219   1        
+ 220   1        if(jia_re_wen_du>last_temp && jia_re_wen_du-last_temp<2)
+ 221   1        {
+ 222   2          show_temp(jia_re_wen_du);
+ 223   2        }
+ 224   1        else if(jia_re_wen_du<last_temp && last_temp-jia_re_wen_du<2)
+ 225   1        {
+ 226   2          show_temp(jia_re_wen_du);
+ 227   2        
+ 228   2        }
+ 229   1        else
+ 230   1        {
+ 231   2          show_temp(last_temp);
+ 232   2        }
+ 233   1          
+ 234   1          
+ 235   1        
+ 236   1      }
+ 237          
+C51 COMPILER V9.56.0.0   TEMPERATURE                                                       07/14/2020 21:27:37 PAGE 5   
+
+ 238          
+ 239          
+ 240          
+ 241          
+ 242          
+ 243          
+ 244          
+ 245          
+ 246          
+ 247          
+ 248          
+ 249          
+ 250          
+ 251          
+ 252          
+ 253          
+ 254          
+ 255          
+ 256          
+ 257          
+ 258          
+ 259          
+ 260          
+ 261          
+ 262          
+ 263          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    678    ----
+   CONSTANT SIZE    =    209    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14      22
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

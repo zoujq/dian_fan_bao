@@ -1,0 +1,337 @@
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE KEYS
+OBJECT MODULE PLACED IN .\output\keys.obj
+COMPILER INVOKED BY: F:\Keil\C51\BIN\C51.EXE source\keys.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\lst\keys.lst) TAB
+                    -S(2) OBJECT(.\output\keys.obj)
+
+line level    source
+
+   1          #include "include/ca51f_config.h"   
+   2          #include "include/ca51f3sfr.h"
+   3          #include "include/ca51f3xsfr.h"
+   4          #include "include/gpiodef_f3.h"
+   5          #include "include/system_clock.h"
+   6          
+   7          #include "include/uart.h"
+   8          #include "include/delay.h"
+   9          #include <intrins.h>
+  10          
+  11          #include "include/tm1722.h"
+  12          #include "include/keys.h"
+  13          
+  14          #define KEY P00
+  15          #define SPEAKER P31
+  16          #define XUAN_NIU_KEY P06
+  17          #define XUAN_NIU_ZHENG P07
+  18          #define XUAN_NIU_NI P35
+  19          
+  20          char system_status=1;
+  21          char bao_wen_status=0;
+  22          char jia_re_status=0;
+  23          char jia_re_wen_du=100;
+  24          char xuan_niu_ing=0;
+  25          char xuan_niu_deng_dai=0;
+  26          void init_keys_gpio()
+  27          {
+  28   1          P00F = INPUT|PU_EN;    //KEY
+  29   1          P00C &= ~0x20;  
+  30   1        
+  31   1          P31F = OUTPUT|PD_EN;   //SPEAKER
+  32   1          P31C &= ~0x10;          
+  33   1        
+  34   1          P06F = INPUT|PU_EN;    //XUAN_NIU_KEY
+  35   1          P06C &= ~0x20;  
+  36   1        
+  37   1          //XUAN_NIU_ZHENG
+  38   1          P07F = 1; //设置 P07 为输入引脚   
+  39   1          IT0CON = 7; //选择 P07 作为中断 0 引脚，7 为 P07 对应的索引编号
+  40   1          EX0 = 1; //INT0 中断使能
+  41   1          IE0 = 1; //外部中断 0 使能
+  42   1          IT0 = 1; //设置为下降沿中断
+  43   1          PX0 = 1; //设置 INT0 为高优先级
+  44   1        
+  45   1      //    //XUAN_NIU_NI
+  46   1      
+  47   1          P35F = INPUT; //设置 P35 为输入引脚
+  48   1          IT1CON = 29; //选择 P35 作为中断 35 引脚，29 为 P35 对应的索引编号
+  49   1          EX1 = 1; //INT1 中断使能
+  50   1          IE1 = 1; //外部中断 1 使能
+  51   1          IT1 = 1; //设置为下降沿中断
+  52   1          PX1 = 1; //设置 INT1 为高优先级
+  53   1          
+  54   1          SPEAKER=0;
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 2   
+
+  55   1      }
+  56          unsigned char get_keys()
+  57          {
+  58   1        return KEY;
+  59   1        
+  60   1      }
+  61          void On_keys()
+  62          {
+  63   1        static char lask_key=1;
+  64   1        static char times=0;
+  65   1        if(KEY==0)
+  66   1        {
+  67   2          if(lask_key==1)
+  68   2          {
+  69   3            if(system_status==1)
+  70   3            {
+  71   4              set_speaker();
+  72   4            }     
+  73   3            lask_key=0;
+  74   3          }
+  75   2          times++;
+  76   2          if(times==30)
+  77   2          {
+  78   3            if(system_status==1)
+  79   3            {
+  80   4              system_status=0;
+  81   4              close_display();
+  82   4              jia_re_status=0;
+  83   4              un_display_icon_wendu();
+  84   4            }
+  85   3            else
+  86   3            {
+  87   4              system_status=1;
+  88   4              open_display();
+  89   4              set_speaker();
+  90   4      
+  91   4            }
+  92   3          }
+  93   2          if(times>30)
+  94   2          {
+  95   3            times=31;
+  96   3          }
+  97   2        }
+  98   1        else 
+  99   1        { 
+ 100   2          lask_key=1;
+ 101   2          times=0;
+ 102   2        
+ 103   2        }
+ 104   1        
+ 105   1      }
+ 106          void On_xuan_niu_key()
+ 107          {
+ 108   1        static char lask_key=1;
+ 109   1        static char times=0;
+ 110   1        if(system_status==1)
+ 111   1        {
+ 112   2          if(XUAN_NIU_KEY==0)
+ 113   2          {
+ 114   3            if(lask_key==1)
+ 115   3            {     
+ 116   4              set_speaker();    
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 3   
+
+ 117   4              lask_key=0;
+ 118   4            }
+ 119   3            times++;
+ 120   3            if(times==30)
+ 121   3            {     
+ 122   4              if(bao_wen_status==1)
+ 123   4              {
+ 124   5                un_display_icon_wendu();
+ 125   5                set_speaker();
+ 126   5                bao_wen_status=0;
+ 127   5              }
+ 128   4              else
+ 129   4              {
+ 130   5                display_icon_wendu();
+ 131   5                set_speaker();
+ 132   5                bao_wen_status=1;
+ 133   5              }       
+ 134   4            }
+ 135   3            if(times>30)
+ 136   3            {
+ 137   4              times=31;
+ 138   4            }
+ 139   3          }
+ 140   2          else 
+ 141   2          { 
+ 142   3            if(lask_key==0 && times< 20 )
+ 143   3            {
+ 144   4              if(jia_re_status==0)
+ 145   4              {
+ 146   5                jia_re_status=1;
+ 147   5                display_icon_huomiao();
+ 148   5              }
+ 149   4              else
+ 150   4              {
+ 151   5                jia_re_status=0;
+ 152   5                un_display_icon_huomiao();
+ 153   5              }
+ 154   4              
+ 155   4            }
+ 156   3            lask_key=1;
+ 157   3            times=0;
+ 158   3          
+ 159   3          }
+ 160   2        }
+ 161   1      
+ 162   1      }
+ 163          void INT0_ISR (void) interrupt 0
+ 164          {
+ 165   1      //外部中断 0 中断服务程序
+ 166   1        if(system_status==1 && xuan_niu_deng_dai==0)
+ 167   1        {   
+ 168   2          if(XUAN_NIU_ZHENG==0 && XUAN_NIU_NI==1)
+ 169   2          { 
+ 170   3            Delay_ms(10);
+ 171   3            if(XUAN_NIU_ZHENG==0 && XUAN_NIU_NI==1)
+ 172   3            { 
+ 173   4              jia_re_wen_du++;
+ 174   4              if(jia_re_wen_du>100)
+ 175   4              {
+ 176   5                jia_re_wen_du=100;
+ 177   5              }
+ 178   4            }
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 4   
+
+ 179   3          }
+ 180   2          xuan_niu_deng_dai=1;
+ 181   2        }
+ 182   1      
+ 183   1      }
+ 184          void INT1_ISR (void) interrupt 2
+ 185          {
+ 186   1        //外部中断 1 中断服务程序
+ 187   1        if(system_status==1 && xuan_niu_deng_dai==0)
+ 188   1        {   
+ 189   2          if(XUAN_NIU_ZHENG==1 && XUAN_NIU_NI==0)
+ 190   2          {   
+ 191   3            Delay_ms(10);
+ 192   3            if(XUAN_NIU_ZHENG==1 && XUAN_NIU_NI==0)
+ 193   3            { 
+ 194   4              jia_re_wen_du--;
+ 195   4              if(jia_re_wen_du<11)
+ 196   4              {
+ 197   5                jia_re_wen_du=11;
+ 198   5              }   
+ 199   4            }
+ 200   3          }
+ 201   2          xuan_niu_deng_dai=1;
+ 202   2        }
+ 203   1      
+ 204   1      }
+ 205          void On_xuan_niu()
+ 206          {
+ 207   1        static unsigned int last_jia_re_wen_du=100;
+ 208   1        static int times=0;
+ 209   1        static char setting=0;
+ 210   1      
+ 211   1        if(jia_re_wen_du!=last_jia_re_wen_du || xuan_niu_deng_dai==1)
+ 212   1        {     
+ 213   2          last_jia_re_wen_du=jia_re_wen_du;
+ 214   2          show_temp(jia_re_wen_du);
+ 215   2          times=0;
+ 216   2          setting=1;
+ 217   2          xuan_niu_ing=1;
+ 218   2        }
+ 219   1        else 
+ 220   1        { 
+ 221   2          if(setting==1)
+ 222   2          {   
+ 223   3            times++;        
+ 224   3            if(times==25)
+ 225   3            {
+ 226   4              un_diplay_temp();
+ 227   4            }
+ 228   3            else if(times==30)
+ 229   3            {
+ 230   4              show_temp(jia_re_wen_du);
+ 231   4            }
+ 232   3            else if(times==35)
+ 233   3            {
+ 234   4              un_diplay_temp();
+ 235   4            }
+ 236   3            else if(times==40)
+ 237   3            {
+ 238   4              show_temp(jia_re_wen_du);
+ 239   4            }
+ 240   3            else if(times==45)
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 5   
+
+ 241   3            {
+ 242   4              un_diplay_temp();
+ 243   4            }
+ 244   3            else if(times==50)
+ 245   3            {
+ 246   4              show_temp(jia_re_wen_du);         
+ 247   4              set_speaker();
+ 248   4              setting=0;    
+ 249   4              times=0;    
+ 250   4              jia_re_status=1;
+ 251   4              display_icon_huomiao(); 
+ 252   4              xuan_niu_ing=0;         
+ 253   4            }
+ 254   3          }
+ 255   2          
+ 256   2        }
+ 257   1        xuan_niu_deng_dai=0;
+ 258   1      }
+ 259          void set_speaker()
+ 260          {
+ 261   1        long i=0;
+ 262   1      
+ 263   1        for(i=0;i<300;i++)
+ 264   1        {
+ 265   2          SPEAKER=1;
+ 266   2          Delay_50us(3);
+ 267   2          SPEAKER=0;
+ 268   2          Delay_50us(3);
+ 269   2        }
+ 270   1      }
+ 271          char get_xuan_niu_ing()
+ 272          {
+ 273   1        return xuan_niu_ing;
+ 274   1      
+ 275   1      }
+ 276          char get_jia_re_wen_du()
+ 277          {
+ 278   1        return jia_re_wen_du;
+ 279   1      } 
+ 280          char get_jia_re_status()
+ 281          {
+ 282   1        return jia_re_status;
+ 283   1      } 
+ 284          
+ 285          char get_bao_wen_status()
+ 286          {
+ 287   1        return bao_wen_status;
+ 288   1      } 
+ 289          
+ 290          void guan_bi_jia_re()
+ 291          {
+ 292   1        jia_re_status=0;
+ 293   1        un_display_icon_huomiao();
+ 294   1      }
+ 295          
+ 296          
+ 297          
+ 298          
+ 299          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.56.0.0   KEYS                                                              07/14/2020 16:17:15 PAGE 6   
+
+   CODE SIZE        =    715    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     15       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

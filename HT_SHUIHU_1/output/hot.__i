@@ -1,0 +1,1 @@
+"source\hot.c" OMF2 OPTIMIZE (8,SPEED) BROWSE DEBUG PRINT(.\lst\hot.lst) TABS (2) OBJECT(.\output\hot.obj)

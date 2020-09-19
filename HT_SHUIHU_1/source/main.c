@@ -43,38 +43,64 @@ void main(void)
 
 /**************************************************************************************************/
 	
-	lcd_io_init();
-	init_keys_gpio();
-	init_temp_adc();
-	show_temp(0);
-	init_pwm();
+//	lcd_io_init();
+//	init_keys_gpio();
+//	init_temp_adc();
+//	show_temp(0);
+//	init_pwm();
 	
-	set_hot_power(0);
+//	set_hot_power(0);
+	
+	P34F = OUTPUT|OP_EN;    //P34保温灯
+	P07F = OUTPUT|OP_EN;    //P07煮饭灯
+	
+	P15F = OUTPUT|PD_EN; //HOT 加热输出
+	P16F = P16_ADC6_SETTING;// NTC
+	P06F =INPUT | PD_EN; //检测煮饭switch
+
+	P15C &= ~0x10;//弱下拉
+
+	P06C &= ~0x10;//弱下拉
+//	P34=1;
+//	P07=0;
+//	
 	while(1)
 	{
-		t0++;
 		
-		if((t0%100)==0)
+		if(P06==1){
+			P15=1;
+			P07=0;
+			P34=1;
+		}
+		else
 		{
-			refresh_screen();
-			On_keys();
-			On_xuan_niu_key();
+			P15=1;
+			P07=1;
+			P34=0;
 		}
-		if((t0%50)==0)
-		{
-			On_xuan_niu();
-		}
-		if((t0%500)==0)
-		{			
-			check_temp();
-			check_hot();
-			display_temp();
-			
-		}
-		if(t0>10000)
-		{			
-			t0=1;			
-		}
+//		t0++;
+//		
+//		if((t0%100)==0)
+//		{
+//			refresh_screen();
+//			On_keys();
+//			On_xuan_niu_key();
+//		}
+//		if((t0%50)==0)
+//		{
+//			On_xuan_niu();
+//		}
+//		if((t0%500)==0)
+//		{			
+//			check_temp();
+//			check_hot();
+//			display_temp();
+//			
+//		}
+//		if(t0>10000)
+//		{			
+//			t0=1;			
+//		}
 		Delay_ms(1);
 	}
 /***********************************************************************************/		

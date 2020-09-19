@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   MAIN                                                              07/14/2020 15:20:38 PAGE 1   
+C51 COMPILER V9.56.0.0   MAIN                                                              09/18/2020 22:17:51 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE MAIN
@@ -56,51 +56,79 @@ line level    source
   43   1      
   44   1      /**************************************************************************************************/
   45   1        
-  46   1        lcd_io_init();
-  47   1        init_keys_gpio();
-  48   1        init_temp_adc();
-  49   1        show_temp(0);
-  50   1        init_pwm();
+  46   1      //  lcd_io_init();
+  47   1      //  init_keys_gpio();
+  48   1      //  init_temp_adc();
+  49   1      //  show_temp(0);
+  50   1      //  init_pwm();
   51   1        
-C51 COMPILER V9.56.0.0   MAIN                                                              07/14/2020 15:20:38 PAGE 2   
+C51 COMPILER V9.56.0.0   MAIN                                                              09/18/2020 22:17:51 PAGE 2   
 
-  52   1        set_hot_power(0);
-  53   1        while(1)
-  54   1        {
-  55   2          t0++;
-  56   2          
-  57   2          if((t0%100)==0)
-  58   2          {
-  59   3            refresh_screen();
-  60   3            On_keys();
-  61   3            On_xuan_niu_key();
-  62   3          }
-  63   2          if((t0%50)==0)
-  64   2          {
-  65   3            On_xuan_niu();
-  66   3          }
-  67   2          if((t0%500)==0)
-  68   2          {     
-  69   3            check_temp();
-  70   3            check_hot();
-  71   3            display_temp();
-  72   3            
-  73   3          }
-  74   2          if(t0>10000)
-  75   2          {     
-  76   3            t0=1;     
-  77   3          }
-  78   2          Delay_ms(1);
-  79   2        }
-  80   1      /***********************************************************************************/   
-  81   1      
-  82   1      
-  83   1      }
-  84          #endif
+  52   1      //  set_hot_power(0);
+  53   1        
+  54   1        P34F = OUTPUT|OP_EN;    //P34保温灯
+  55   1        P07F = OUTPUT|OP_EN;    //P07煮饭灯
+  56   1        
+  57   1        P15F = OUTPUT|PD_EN; //HOT 加热输出
+  58   1        P16F = P16_ADC6_SETTING;// NTC
+  59   1        P06F =INPUT | PD_EN; //检测煮饭switch
+  60   1      
+  61   1        P15C &= ~0x10;//弱下拉
+  62   1      
+  63   1        P06C &= ~0x10;//弱下拉
+  64   1      //  P34=1;
+  65   1      //  P07=0;
+  66   1      //  
+  67   1        while(1)
+  68   1        {
+  69   2          
+  70   2          if(P06==1){
+  71   3            P15=1;
+  72   3            P07=0;
+  73   3            P34=1;
+  74   3          }
+  75   2          else
+  76   2          {
+  77   3            P15=1;
+  78   3            P07=1;
+  79   3            P34=0;
+  80   3          }
+  81   2      //    t0++;
+  82   2      //    
+  83   2      //    if((t0%100)==0)
+  84   2      //    {
+  85   2      //      refresh_screen();
+  86   2      //      On_keys();
+  87   2      //      On_xuan_niu_key();
+  88   2      //    }
+  89   2      //    if((t0%50)==0)
+  90   2      //    {
+  91   2      //      On_xuan_niu();
+  92   2      //    }
+  93   2      //    if((t0%500)==0)
+  94   2      //    {     
+  95   2      //      check_temp();
+  96   2      //      check_hot();
+  97   2      //      display_temp();
+  98   2      //      
+  99   2      //    }
+ 100   2      //    if(t0>10000)
+ 101   2      //    {     
+ 102   2      //      t0=1;     
+ 103   2      //    }
+ 104   2          Delay_ms(1);
+ 105   2        }
+ 106   1      /***********************************************************************************/   
+ 107   1      
+ 108   1      
+ 109   1      }
+ 110          #endif
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    148    ----
+C51 COMPILER V9.56.0.0   MAIN                                                              09/18/2020 22:17:51 PAGE 3   
+
+   CODE SIZE        =     91    ----
    CONSTANT SIZE    =     16    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

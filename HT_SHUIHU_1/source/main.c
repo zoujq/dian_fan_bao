@@ -74,7 +74,7 @@ void main(void)
 		}
 		else
 		{
-			P15=1;
+			P15=0;
 			P07=1;
 			P34=0;
 		}

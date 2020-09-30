@@ -63,53 +63,6 @@ void set_hot_power(unsigned char n)
 }	
 
 
-void check_hot()
-{
-	unsigned int current_temp=get_temp();
-	char jia_re_wen_du=get_jia_re_wen_du();
-	char jia_re_status= get_jia_re_status();
-	char bao_wen_status= get_bao_wen_status();
-	
-	if(jia_re_status || bao_wen_status)
-	{
-		if(jia_re_wen_du>current_temp)
-		{
-			if(jia_re_wen_du-current_temp>10)
-			{
-				set_hot_power(100);
-			}
-			else if(jia_re_wen_du-current_temp>5)
-			{
-				set_hot_power(30);
-			}
-			else 
-			{
-				if(jia_re_wen_du>90 || bao_wen_status>90 )
-				{
-					set_hot_power(30);
-				}
-				else
-				{
-					set_hot_power(10);
-				}
-				
-			}
-			hot_status=1;
-		}
-		else
-		{
-			guan_bi_jia_re();
-			hot_status=0;
-			set_hot_power(0);
-		}
-		
-	}
-	else
-	{
-		set_hot_power(0);
-	}
-	
 
-}
 
 

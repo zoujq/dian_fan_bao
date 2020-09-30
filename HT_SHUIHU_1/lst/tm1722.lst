@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 1   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE TM1722
@@ -62,7 +62,7 @@ line level    source
   49   1        Delay_ms(n);
   50   1      }
   51          
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 2   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 2   
 
   52          void lcd_io_init()
   53          {
@@ -126,7 +126,7 @@ line level    source
  111   1       write_8bit(0x00);
  112   1        
  113   1       STB=1;
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 3   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 3   
 
  114   1      }
  115          
@@ -190,7 +190,7 @@ line level    source
  171   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=1;Buff[15]=1;Buff[10]=1;Buff[8]=1;
  172   3              break;
  173   3            case 9:
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 4   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 4   
 
  174   3              Buff[9]=1;Buff[12]=1;Buff[13]=1;Buff[14]=0;Buff[15]=1;Buff[10]=1;Buff[8]=1;
  175   3              break;
@@ -254,7 +254,7 @@ line level    source
  233   2        }
  234   1        
  235   1      
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 5   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 5   
 
  236   1      }
  237          ///////////////////œ‘ æÕº±Í///////////////
@@ -318,7 +318,7 @@ line level    source
  295          {
  296   1        show_number(4,0);
  297   1        set_icon(4,0);
-C51 COMPILER V9.56.0.0   TM1722                                                            07/14/2020 15:20:39 PAGE 6   
+C51 COMPILER V9.56.0.0   TM1722                                                            09/29/2020 20:50:52 PAGE 6   
 
  298   1      }
  299          void close_display()

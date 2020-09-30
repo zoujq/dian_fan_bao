@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   MAIN                                                              09/19/2020 11:18:37 PAGE 1   
+C51 COMPILER V9.56.0.0   MAIN                                                              09/30/2020 11:26:30 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE MAIN
@@ -33,106 +33,277 @@ line level    source
   21            本例程以P00为例，设置P00为不同模式，所有IO用法与P00相同。
   22          **********************************************************************************************************
              -***********/
-  23          void main(void)
-  24          {
-  25   1        int t0=0;
-  26   1      #if (SYSCLK_SRC == PLL)
+  23          
+  24          struct {
+  25            char shi_pu_num;
+  26            int work_time;
+  27            int success_time;
+  28            char is_bao_wen;
+  29            char state;
+  30            
+  31          }device_info;
+  32          
+  33          #define BAO_WEN_LIGHT P34
+  34          #define PENG_REN_LIGHT P07
+  35          #define DEVICE_SWITCH P06
+  36          
+  37          void set_device_info(char state,char shi_pu_num,int work_time,int wait_time,char is_bao_wen);
+  38          void key_check()
+  39          {
+  40   1        static char lask_key=-1;
+  41   1        
+  42   1        if(lask_key!=P06)
+  43   1        {
+  44   2          lask_key=P06;
+  45   2          if(lask_key==1)
+  46   2          {
+  47   3            set_device_info(1,1,25,0,1);
+  48   3          }
+  49   2          else
+  50   2          {
+  51   3            if(device_info.success_time==0 && device_info.state==1)
+C51 COMPILER V9.56.0.0   MAIN                                                              09/30/2020 11:26:30 PAGE 2   
+
+  52   3            {
+  53   4              set_device_info(3,1,25,480,1);
+  54   4            }
+  55   3            else
+  56   3            {
+  57   4              set_device_info(0,0,0,0,0);
+  58   4            }
+  59   3            
+  60   3          }
+  61   2      
+  62   2        }
+  63   1      }
+  64          void led_light_set()
+  65          {
+  66   1        static char last_state=-1;
+  67   1        if(last_state!=device_info.state)
+  68   1        {
+  69   2          last_state=device_info.state;
+  70   2          if(last_state==0)
+  71   2          {
+  72   3            BAO_WEN_LIGHT=1;//为1关灯
+  73   3            PENG_REN_LIGHT=1;//为1关灯
+  74   3          }
+  75   2          else if(last_state==1)
+  76   2          {
+  77   3            BAO_WEN_LIGHT=1;//为1关灯
+  78   3            PENG_REN_LIGHT=0;//为1关灯
+  79   3          }
+  80   2          else if(last_state==2)
+  81   2          {
+  82   3            BAO_WEN_LIGHT=1;//为1关灯
+  83   3            PENG_REN_LIGHT=1;//为1关灯
+  84   3          }
+  85   2          else if(last_state==3)
+  86   2          {
+  87   3            BAO_WEN_LIGHT=0;//为1关灯
+  88   3            PENG_REN_LIGHT=1;//为1关灯
+  89   3          }
+  90   2        }
+  91   1        
+  92   1      }
+  93          
+  94          void ble_check()
+  95          {
+  96   1        if(uart0_rev.head>0)
+  97   1        {
+  98   2          Delay_ms(10);
+  99   2          if(uart0_rx_buf[1]==0xC8)
+ 100   2          {
+ 101   3            if(uart0_rx_buf[2]==1)
+ 102   3            {
+ 103   4              char state;
+ 104   4              char shi_pu_num;
+ 105   4              int work_time;
+ 106   4              int wait_time;
+ 107   4              char is_bao_wen;
+ 108   4      
+ 109   4              shi_pu_num=uart0_rx_buf[3];
+ 110   4              work_time=(uart0_rx_buf[4]<<8) + uart0_rx_buf[5];
+ 111   4              wait_time=(uart0_rx_buf[6]<<8) + uart0_rx_buf[7];
+ 112   4              is_bao_wen=uart0_rx_buf[8];
+ 113   4              if(wait_time==0)
+C51 COMPILER V9.56.0.0   MAIN                                                              09/30/2020 11:26:30 PAGE 3   
+
+ 114   4              {
+ 115   5                state=1;
+ 116   5              }
+ 117   4              else{
+ 118   5                state=2;
+ 119   5              }
+ 120   4              set_device_info(state,shi_pu_num,work_time,wait_time,is_bao_wen);
+ 121   4            }
+ 122   3            else if(uart0_rx_buf[2]==2)
+ 123   3            {
+ 124   4              Uart0_PutChar(0xC8);
+ 125   4              Uart0_PutChar(2);
+ 126   4              Uart0_PutChar(device_info.state);
+ 127   4              Uart0_PutChar(device_info.shi_pu_num);
+ 128   4              Uart0_PutChar(device_info.success_time);
+ 129   4              Uart0_PutChar(device_info.is_bao_wen);
+ 130   4              Uart0_PutChar(0);
+ 131   4      
+ 132   4            }
+ 133   3            else if(uart0_rx_buf[2]==3)
+ 134   3            {
+ 135   4              set_device_info(0,0,0,0,0);
+ 136   4            }
+ 137   3          }
+ 138   2          uart0_rev.head=0;
+ 139   2        }   
+ 140   1        
+ 141   1      }
+ 142          
+ 143          void set_device_info(char state,char shi_pu_num,int work_time,int wait_time,char is_bao_wen)
+ 144          {
+ 145   1        device_info.state=state;
+ 146   1        device_info.shi_pu_num=shi_pu_num;
+ 147   1        device_info.work_time=work_time;
+ 148   1        device_info.success_time=wait_time+work_time;
+ 149   1        device_info.is_bao_wen=is_bao_wen;
+ 150   1      }
+ 151          void check_hot()
+ 152          {
+ 153   1        static char last_state=-1;
+ 154   1        if(device_info.success_time>0)
+ 155   1        {
+ 156   2          if(device_info.state==1)
+ 157   2          {
+ 158   3            set_hot_power(100);
+ 159   3          }
+ 160   2          else if(device_info.state==2)
+ 161   2          {
+ 162   3            if(device_info.work_time>device_info.success_time)
+ 163   3            {
+ 164   4              device_info.state=1;
+ 165   4            }     
+ 166   3            set_hot_power(0);
+ 167   3          }
+ 168   2          else if(device_info.state==3)
+ 169   2          {
+ 170   3            set_hot_power(20);
+ 171   3          }
+ 172   2          else
+ 173   2          {
+ 174   3            set_hot_power(0);
+ 175   3            set_device_info(0,0,0,0,0);
+C51 COMPILER V9.56.0.0   MAIN                                                              09/30/2020 11:26:30 PAGE 4   
+
+ 176   3          }
+ 177   2          
+ 178   2        }
+ 179   1        else
+ 180   1        {
+ 181   2          if(device_info.state==1)
+ 182   2          {
+ 183   3            if(device_info.is_bao_wen==1)
+ 184   3            {
+ 185   4              set_device_info(3,0,0,480,0);
+ 186   4            }
+ 187   3          }
+ 188   2          else
+ 189   2          {
+ 190   3            set_device_info(0,0,0,0,0);
+ 191   3          }
+ 192   2      
+ 193   2        }
+ 194   1        
+ 195   1      
+ 196   1      }
+*** WARNING C280 IN LINE 153 OF source\main.c: 'last_state': unreferenced local variable
+ 197          void main(void)
+ 198          {
+ 199   1        int t0=0;
+ 200   1        int i=0;
+ 201   1      #if (SYSCLK_SRC == PLL)
                 Sys_Clk_Set_PLL(PLL_Multiple);  //设置系统时钟为PLL，PLL_Multiple为倍频倍数
               #endif
-  29   1        
-  30   1      #ifdef UART0_EN
-                Uart0_Initial(UART0_BAUTRATE);  //初始化UART0
-              #endif
-  33   1        
-  34   1      #ifdef UART1_EN
-  35   1        Uart1_Initial(UART1_BAUTRATE);  //初始化UART1
-  36   1      #endif
-  37   1      
-  38   1        EA = 1;                         //开全局中断
-  39   1      
-  40   1      #ifdef PRINT_EN
-  41   1        uart_printf("GPIO Demo Code\n");
-  42   1      #endif
-  43   1      
-  44   1      /**************************************************************************************************/
-  45   1        
-  46   1      //  lcd_io_init();
-  47   1      //  init_keys_gpio();
-  48   1      //  init_temp_adc();
-  49   1      //  show_temp(0);
-  50   1      //  init_pwm();
-  51   1        
-C51 COMPILER V9.56.0.0   MAIN                                                              09/19/2020 11:18:37 PAGE 2   
+ 204   1        
+ 205   1      #ifdef UART0_EN
+ 206   1        Uart0_Initial(UART0_BAUTRATE);  //初始化UART0
+ 207   1      #endif
+ 208   1        
+ 209   1      #ifdef UART1_EN
+ 210   1        Uart1_Initial(UART1_BAUTRATE);  //初始化UART1
+ 211   1      #endif
+ 212   1      
+ 213   1        EA = 1;                         //开全局中断
+ 214   1      
+ 215   1      #ifdef PRINT_EN
+ 216   1        uart_printf("GPIO Demo Code\n");
+ 217   1      #endif
+ 218   1      
+ 219   1      /**************************************************************************************************/
+ 220   1        Uart0_Initial(UART0_BAUTRATE);
+ 221   1        
+ 222   1        P34F = OUTPUT|OP_EN;    //P34保温灯
+ 223   1        P07F = OUTPUT|OP_EN;    //P07煮饭灯
+ 224   1        
+ 225   1      
+ 226   1        P16F = P16_ADC6_SETTING;// NTC
+ 227   1        P06F =INPUT | PD_EN; //检测煮饭switch
+ 228   1      
+ 229   1        P06C &= ~0x10;//弱下拉
+ 230   1        
+ 231   1        //  P15F = OUTPUT|PD_EN; //HOT 加热输出
+ 232   1        //  P15C &= ~0x10;//弱下拉
+ 233   1        init_pwm();//P15为加热输出
+ 234   1        set_device_info(0,0,0,0,0);
+ 235   1        while(1)
+ 236   1        {
+C51 COMPILER V9.56.0.0   MAIN                                                              09/30/2020 11:26:30 PAGE 5   
 
-  52   1      //  set_hot_power(0);
-  53   1        
-  54   1        P34F = OUTPUT|OP_EN;    //P34保温灯
-  55   1        P07F = OUTPUT|OP_EN;    //P07煮饭灯
-  56   1        
-  57   1        P15F = OUTPUT|PD_EN; //HOT 加热输出
-  58   1        P16F = P16_ADC6_SETTING;// NTC
-  59   1        P06F =INPUT | PD_EN; //检测煮饭switch
-  60   1      
-  61   1        P15C &= ~0x10;//弱下拉
-  62   1      
-  63   1        P06C &= ~0x10;//弱下拉
-  64   1      //  P34=1;
-  65   1      //  P07=0;
-  66   1      //  
-  67   1        while(1)
-  68   1        {
-  69   2          
-  70   2          if(P06==1){
-  71   3            P15=1;
-  72   3            P07=0;
-  73   3            P34=1;
-  74   3          }
-  75   2          else
-  76   2          {
-  77   3            P15=0;
-  78   3            P07=1;
-  79   3            P34=0;
-  80   3          }
-  81   2      //    t0++;
-  82   2      //    
-  83   2      //    if((t0%100)==0)
-  84   2      //    {
-  85   2      //      refresh_screen();
-  86   2      //      On_keys();
-  87   2      //      On_xuan_niu_key();
-  88   2      //    }
-  89   2      //    if((t0%50)==0)
-  90   2      //    {
-  91   2      //      On_xuan_niu();
-  92   2      //    }
-  93   2      //    if((t0%500)==0)
-  94   2      //    {     
-  95   2      //      check_temp();
-  96   2      //      check_hot();
-  97   2      //      display_temp();
-  98   2      //      
-  99   2      //    }
- 100   2      //    if(t0>10000)
- 101   2      //    {     
- 102   2      //      t0=1;     
- 103   2      //    }
- 104   2          Delay_ms(1);
- 105   2        }
- 106   1      /***********************************************************************************/   
- 107   1      
- 108   1      
- 109   1      }
- 110          #endif
+ 237   2          t0++;
+ 238   2          key_check();
+ 239   2          ble_check();
+ 240   2          led_light_set();
+ 241   2          if(t0%3000==0)
+ 242   2          {
+ 243   3            check_hot();
+ 244   3          } 
+ 245   2          Delay_ms(1);
+ 246   2        }
+ 247   1      /***********************************************************************************/   
+ 248   1      
+ 249   1      
+ 250   1      }
+ 251          
+ 252          #endif
+ 253          
+ 254          
+ 255          
+ 256          
+ 257          
+ 258          
+ 259          
+ 260          
+ 261          
+ 262          
+ 263          
+ 264          
+ 265          
+ 266          
+ 267          
+ 268          
+ 269          
+ 270          
+ 271          
+ 272          
+ 273          
+ 274          
+ 275          
+ 276          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-C51 COMPILER V9.56.0.0   MAIN                                                              09/19/2020 11:18:37 PAGE 3   
-
-   CODE SIZE        =     91    ----
+   CODE SIZE        =    573    ----
    CONSTANT SIZE    =     16    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----       2
+   DATA SIZE        =     10      18
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
    EDATA SIZE       =   ----    ----
@@ -142,4 +313,4 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
